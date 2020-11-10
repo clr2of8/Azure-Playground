@@ -23,6 +23,17 @@ function Start-Stop-Specific-VMs-by-VM-Tags-and-RG-Tag {
     Write-Output "---------------------------- Status ----------------------------"
     Write-Output "Getting all virtual machines from all resource groups ..."
 
+    if ($VmTags) {
+        $mynewhash = @{}
+        $VmTags.psobject.properties | Foreach { $mynewhash[$_.Name] = $_.Value }
+        $VmTags = $mynewhash
+    } 
+    if ($VmExclusionTags) {
+        $mynewhash = @{}
+        $VmExclusionTags.psobject.properties | Foreach { $mynewhash[$_.Name] = $_.Value }
+        $VmExclusionTags = $mynewhash
+    } 
+
     $rgs = Get-AzResourceGroup -Tag @{$ResourceGroupTagName = "$ResourceGroupTagValue" }
     foreach ($rg in $rgs) {
         $rgName = $rg.ResourceGroupName
@@ -36,7 +47,7 @@ function Start-Stop-Specific-VMs-by-VM-Tags-and-RG-Tag {
             $vms = $vms | Where-Object { -not ($vmstoexclude.resourceID -contains $_.resourceID) }
         }
         foreach ($vm in $vms) {
-            Write-Host "Called $Action on $($vm.Name)"
+            Write-Output "Called $Action on $($vm.Name)"
             if ($Action -eq "start") {
                 $null = Start-AzVM -ResourceGroupName $rgName -Name $vm.Name -NoWait
             }

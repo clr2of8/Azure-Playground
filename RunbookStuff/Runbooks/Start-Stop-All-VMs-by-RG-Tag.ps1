@@ -1,3 +1,4 @@
+#fist line
 param (
 
     [Parameter(Mandatory=$true)]  
@@ -10,40 +11,7 @@ param (
     [String] $TagValue
 ) 
 
-## Authentication
-Write-Output ""
-Write-Output "------------------------ Authentication ------------------------"
-Write-Output "Logging into Azure ..."
-
-try
-{
-    # Ensures you do not inherit an AzContext in your runbook
-    $null = Disable-AzContextAutosave -Scope Process
-
-    $Conn = Get-AutomationConnection -Name AzureRunAsConnection
-    
-    $null = Connect-AzAccount `
-                    -ServicePrincipal `
-                    -Tenant $Conn.TenantID `
-                    -ApplicationId $Conn.ApplicationID `
-                    -CertificateThumbprint $Conn.CertificateThumbprint
-
-    Write-Output "Successfully logged into Azure." 
-} 
-catch
-{
-    if (!$Conn)
-    {
-        $ErrorMessage = "Service principal not found."
-        throw $ErrorMessage
-    } 
-    else
-    {
-        Write-Error -Message $_.Exception
-        throw $_.Exception
-    }
-}
-## End of authentication
+## Authentication Header
 
 ## Getting all virtual machines
 Write-Output ""
@@ -69,3 +37,4 @@ foreach ($rg in $rgs) {
     
     Write-Output "Done $Action`ing VMs in Resource Group: $rgName"
 }
+#last line

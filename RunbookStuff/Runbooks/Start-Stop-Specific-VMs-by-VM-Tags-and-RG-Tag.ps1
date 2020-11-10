@@ -23,12 +23,12 @@ function Start-Stop-Specific-VMs-by-VM-Tags-and-RG-Tag {
     Write-Output "---------------------------- Status ----------------------------"
     Write-Output "Getting all virtual machines from all resource groups ..."
 
-    if ($VmTags) {
+    if ($VmTags -and ($VmTags.GetType().Name -eq 'PsCustomObject')) {
         $mynewhash = @{}
         $VmTags.psobject.properties | Foreach { $mynewhash[$_.Name] = $_.Value }
         $VmTags = $mynewhash
     } 
-    if ($VmExclusionTags) {
+    if ($VmExclusionTags -and ($VmExclusionTags.GetType().Name -eq 'PsCustomObject')) {
         $mynewhash = @{}
         $VmExclusionTags.psobject.properties | Foreach { $mynewhash[$_.Name] = $_.Value }
         $VmExclusionTags = $mynewhash

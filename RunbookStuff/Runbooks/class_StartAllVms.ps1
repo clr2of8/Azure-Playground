@@ -22,8 +22,8 @@ catch {
 [int] $TimeoutInSecs = 20
 $RetryFlag = $true
 $Attempt = 1
-$VmExclusionTags = @{'skip-start'='true'}
-$params = @{"Action" = "start"; "ResourceGroupTagName" = "type"; "ResourceGroupTagValue" = "class"; "VmExclusionTags" = @{'skip-start'='true'} }
+$VmExclusionTags = @{'skip-start'=''}
+$params = @{"Action" = "start"; "ResourceGroupTagName" = "type"; "ResourceGroupTagValue" = "class"; "VmExclusionTags" = $VmExclusionTags }
 Write-Output $params
 
 do {

@@ -48,11 +48,11 @@ $stopDescription = "triggers 2 hours after classs is over (end of lab time)"
 New-AzAutomationSchedule -AutomationAccountName $AutomationAccountName -Name $classStopScheduleName -StartTime $stopTime -DayInterval 1 -ResourceGroupName $AutomationAccountRG -Description $stopDescription -TimeZone $TimeZone
 
 Write-Output "------------------------ Create Runbooks ------------------------"
-function create-runbookFile ($path){
+function create-runbookFile ($path) {
     $TempFile = "$env:Temp\tmp.ps1"
     $authHeader = get-content "C:\Users\asmith\Documents\code\Azure-Playground\RunbookStuff\Runbooks\AuthenticationHeader.ps1" -raw
     $script = (get-content $path) | Select -Skip 1 | Select -SkipLast 1
-    $finalContent = $script.replace("# Insert Auth Here",$authHeader)
+    $finalContent = $script.replace("# Insert Auth Here", $authHeader)
     Set-Content $TempFile $finalContent
     $TempFile
 }
@@ -62,9 +62,12 @@ $class_StartAllVmsps1 = "$basePath\Runbooks\class_StartAllVms.ps1"
 $class_StopAllVmsps1 = "$basePath\Runbooks\class_StopAllVms.ps1"
 Import-AzAutomationRunbook -Path (create-runbookFile $class_StartAllVmsps1) -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Type PowerShell -Name $class_StartAllVMsRbName -Published -Force
 Import-AzAutomationRunbook -Path (create-runbookFile $class_StopAllVmsps1) -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Type PowerShell -Name $class_StopAllVMsRbName -Published -Force
-# Import-AzAutomationRunbook -Path (create-runbookFile "$basePath\Runbooks\Start-Stop-All-VMs-by-RG-Tag.ps1") -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Type PowerShell -Name "Start-Stop-All-VMs-by-RG-Tag" -Published -Force
 Import-AzAutomationRunbook -Path (create-runbookFile "$basePath\Runbooks\Start-Stop-Specific-VMs-by-VM-Tags-and-RG-Tag.ps1") -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Type PowerShell -Name "Start-Stop-Specific-VMs-by-VM-Tags-and-RG-Tag" -Published -Force
 
 Write-Output "------------------------ Link Schedules to Runbooks ------------------------"
-Register-AzAutomationScheduledRunbook  -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Name $class_StartAllVMsRbName -ScheduleName $classStartScheduleName
-Register-AzAutomationScheduledRunbook  -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Name $class_StopAllVMsRbName -ScheduleName $classStopScheduleName
+if (-not (Get-AzAutomationScheduledRunbook -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Name $class_StartAllVMsRbName -ScheduleName $classStartScheduleName)) {
+    Register-AzAutomationScheduledRunbook -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Name $class_StartAllVMsRbName -ScheduleName $classStartScheduleName
+}
+if (-not (Get-AzAutomationScheduledRunbook -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Name $class_StopAllVMsRbName -ScheduleName $classStopScheduleName)) {
+    Register-AzAutomationScheduledRunbook -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Name $class_StopAllVMsRbName -ScheduleName $classStopScheduleName
+}

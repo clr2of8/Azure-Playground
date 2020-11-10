@@ -11,11 +11,13 @@ function Start-Stop-Specific-VMs-by-VM-Tags-and-RG-Tag {
         [String] $ResourceGroupTagValue,
 
         [Parameter(Mandatory = $false)]  
-        [Hashtable] $VmTags,
+        [Object] $VmTags,
 
         [Parameter(Mandatory = $false)]  
-        [Hashtable] $VmExclusionTags
+        [Object] $VmExclusionTags
     )
+
+    # Insert Auth Here
 
     Write-Output ""
     Write-Output "---------------------------- Status ----------------------------"

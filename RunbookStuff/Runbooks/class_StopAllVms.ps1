@@ -1,4 +1,7 @@
 #first line
+
+# Insert Auth Here
+
 Write-Output ""
 Write-Output "------------------------ Action ------------------------"
 Write-Output "Stopping VMs ..."
@@ -19,7 +22,8 @@ catch {
 [int] $TimeoutInSecs = 20
 $RetryFlag = $true
 $Attempt = 1
-$params = @{"Action" = "stop"; "ResourceGroupTagName" = "type"; "ResourceGroupTagValue" = "class" }
+$VmTags = @{'type'='art';'type'='caldera'}
+$params = @{"Action" = "stop"; "ResourceGroupTagName" = "type"; "ResourceGroupTagValue" = "class"; "VmTags" = $VmTags }
 Write-Output $params
 
 do {

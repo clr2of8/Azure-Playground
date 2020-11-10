@@ -6,9 +6,23 @@ $classStopScheduleName = "class-stop-schedule"
 $TimeZone = ([System.TimeZoneInfo]::Local).Id
 $basePath = "C:\Users\asmith\Documents\code\Azure-Playground\RunbookStuff"
 
+# Manual Step Create Runas Account, choose 'art-automation-account-->Account Settings-->Run as accounts' (note expiration date on calendar)
+# renew the certificate https://docs.microsoft.com/en-us/azure/automation/manage-runas-account?WT.mc_id=Portal-Microsoft_Azure_Automation#cert-renewal
+
+# Manual Step Import Modules, choose 'art-automation-account-->Modules-->Browse Gallery'
+# Az.accounts
+# Az.compute
+# Az.Automation
+# Az.Resources
+
 Write-Output "------------------------ Create Automation Account ------------------------"
 New-AzResourceGroup -Name $AutomationAccountRG -Location $region -Force
 New-AzAutomationAccount -ResourceGroupName $AutomationAccountRG -Name $AutomationAccountName -Location $region
+
+Write-Output "------------------------ Import Modules into Automation Account ------------------------"
+$moduleName = "Az.Compute"
+$moduleVersion = "1.7.3"
+New-AzAutomationModule -AutomationAccountName  $AutomationAccountName -ResourceGroupName $AutomationAccountRG -Name $moduleName -ContentLinkUri "https://www.powershellgallery.com/api/v2/package/$moduleName/$moduleVersion"
 
 Write-Output "------------------------ Create Automation Account Variables ------------------------"
 if (Get-AzAutomationVariable -AutomationAccountName $AutomationAccountName -ResourceGroupName $AutomationAccountRG -Name 'Internal_AutomationAccountName' -ErrorAction Ignore) {
@@ -36,9 +50,10 @@ New-AzAutomationSchedule -AutomationAccountName $AutomationAccountName -Name $cl
 Write-Output "------------------------ Create Runbooks ------------------------"
 function create-runbookFile ($path){
     $TempFile = "$env:Temp\tmp.ps1"
-    Set-Content $TempFile (get-content "C:\Users\asmith\Documents\code\Azure-Playground\RunbookStuff\Runbooks\AuthenticationHeader.ps1")
+    $authHeader = get-content "C:\Users\asmith\Documents\code\Azure-Playground\RunbookStuff\Runbooks\AuthenticationHeader.ps1" -raw
     $script = (get-content $path) | Select -Skip 1 | Select -SkipLast 1
-    Add-Content $TempFile $script
+    $finalContent = $script.replace("# Insert Auth Here",$authHeader)
+    Set-Content $TempFile $finalContent
     $TempFile
 }
 $class_StartAllVMsRbName = "class_StartAllVms"
@@ -47,7 +62,7 @@ $class_StartAllVmsps1 = "$basePath\Runbooks\class_StartAllVms.ps1"
 $class_StopAllVmsps1 = "$basePath\Runbooks\class_StopAllVms.ps1"
 Import-AzAutomationRunbook -Path (create-runbookFile $class_StartAllVmsps1) -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Type PowerShell -Name $class_StartAllVMsRbName -Published -Force
 Import-AzAutomationRunbook -Path (create-runbookFile $class_StopAllVmsps1) -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Type PowerShell -Name $class_StopAllVMsRbName -Published -Force
-Import-AzAutomationRunbook -Path (create-runbookFile "$basePath\Runbooks\Start-Stop-All-VMs-by-RG-Tag.ps1") -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Type PowerShell -Name "Start-Stop-All-VMs-by-RG-Tag" -Published -Force
+# Import-AzAutomationRunbook -Path (create-runbookFile "$basePath\Runbooks\Start-Stop-All-VMs-by-RG-Tag.ps1") -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Type PowerShell -Name "Start-Stop-All-VMs-by-RG-Tag" -Published -Force
 Import-AzAutomationRunbook -Path (create-runbookFile "$basePath\Runbooks\Start-Stop-Specific-VMs-by-VM-Tags-and-RG-Tag.ps1") -ResourceGroup $AutomationAccountRG -AutomationAccountName $AutomationAccountName -Type PowerShell -Name "Start-Stop-Specific-VMs-by-VM-Tags-and-RG-Tag" -Published -Force
 
 Write-Output "------------------------ Link Schedules to Runbooks ------------------------"

@@ -1,4 +1,7 @@
 #first line
+
+# Insert Auth Here
+
 Write-Output ""
 Write-Output "------------------------ Action ------------------------"
 Write-Output "Starting VMs ..."
